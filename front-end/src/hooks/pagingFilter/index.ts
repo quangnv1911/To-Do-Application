@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
 interface UsePaginationSearchProps {
-  pageSizeOptions?: number[];  // Tùy chọn
-  initialPage?: number;         // Tùy chọn
-  initialSearchTerm?: string;   // Tùy chọn
+  pageSizeOptions?: number[]; // Tùy chọn
+  initialPage?: number; // Tùy chọn
+  initialSearchTerm?: string; // Tùy chọn
 }
 
 interface UsePaginationSearchReturn {
@@ -20,10 +20,10 @@ interface UsePaginationSearchReturn {
 }
 
 const usePaginationSearch = ({
-                               pageSizeOptions = [10, 25, 50],  // Giá trị mặc định nếu không truyền
-                               initialPage = 1,                // Giá trị mặc định nếu không truyền
-                               initialSearchTerm = '',         // Giá trị mặc định nếu không truyền
-                             }: UsePaginationSearchProps = {}): UsePaginationSearchReturn => {
+  pageSizeOptions = [10, 25, 50], // Giá trị mặc định nếu không truyền
+  initialPage = 1, // Giá trị mặc định nếu không truyền
+  initialSearchTerm = '', // Giá trị mặc định nếu không truyền
+}: UsePaginationSearchProps = {}): UsePaginationSearchReturn => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [page, setPage] = useState(initialPage);
   const [pageSize, setPageSize] = useState(pageSizeOptions[0]);

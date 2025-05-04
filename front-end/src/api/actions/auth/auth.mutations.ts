@@ -3,7 +3,6 @@ import {
   LoginMutationArguments,
   LoginMutationResponse,
   LogoutMutationRequest,
-  RegisterMutationArguments,
   // MUTATION_TYPE_IMPORTS
 } from './auth.types';
 import { ENV } from '@/config/env';

@@ -8,7 +8,6 @@ import { AxiosInstance } from 'axios';
 import { StandardizedApiError } from '@/context/apiClient/apiClientContextController/apiError/apiError.types';
 import { ExtendedQueryMeta } from '@/api/types/types';
 
-
 export type UseInfiniteQueryOptions<TQueryFnData = unknown, TError = StandardizedApiError, TPageParam = unknown> = Omit<
   UseInfiniteRQQueryOptions<TQueryFnData, TError, InfiniteData<TQueryFnData>, TQueryFnData, QueryKey, TPageParam>,
   'queryFn'

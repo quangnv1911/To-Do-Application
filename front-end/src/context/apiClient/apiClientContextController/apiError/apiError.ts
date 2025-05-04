@@ -7,15 +7,23 @@ export class ApiError<T extends BasicApiError | FormApiError | UnknownApiError> 
   readonly originalError: AxiosError<unknown> | string;
   readonly statusCode?: number;
   readonly type: 'basic' | 'form' | 'unknown';
-  readonly data: any;
+  readonly data: T extends BasicApiError
+    ? { error: { code: string; message?: string } }
+    : T extends FormApiError
+      ? { errors: Record<string, string[]> }
+      : unknown;
 
   constructor(data: T, message?: string) {
-    super(message || 'An API error occurred');
+    super(message ?? 'An API error occurred');
     this.name = 'ApiError';
     this.originalError = data.originalError;
     this.type = data.type;
     this.statusCode = data.statusCode;
-    this.data = data.data;
+    this.data = data.data as T extends BasicApiError
+      ? { error: { code: string; message?: string } }
+      : T extends FormApiError
+        ? { errors: Record<string, string[]> }
+        : unknown;
   }
 }
 
@@ -44,13 +52,11 @@ const isFormErrorData = (error: unknown): error is FormErrorData => {
 export const getStandardizedApiError = (
   error: AxiosError<unknown>,
 ): ApiError<BasicApiError> | ApiError<FormApiError> | ApiError<UnknownApiError> => {
-  console.log('Raw error:', JSON.stringify(error, null, 2));
-  const errorData = error?.response?.data || null;
-  console.log('Error data:', JSON.stringify(errorData, null, 2));
+  const errorData = error?.response?.data ?? null;
 
   const standardizedError: UnknownApiError = {
     type: 'unknown',
-    statusCode: error?.response?.status || 500,
+    statusCode: error?.response?.status ?? 500,
     originalError: error || 'Unknown error source',
     data: errorData || null,
   };
@@ -75,17 +81,16 @@ export const getStandardizedApiError = (
       } as FormApiError);
     }
 
-    console.log('Falling back to unknown error');
     try {
       const apiError = new ApiError(standardizedError);
       throw apiError;
-      console.log('Final API error:', JSON.stringify(apiError, null, 2));
-      return apiError;
     } catch (error) {
-      throw error;
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new Error('Unexpected error while creating ApiError instance');
     }
   } catch (err) {
-    console.error('Error in getStandardizedApiError:', err);
     return new ApiError({
       type: 'unknown',
       statusCode: 500,

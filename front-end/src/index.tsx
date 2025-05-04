@@ -8,6 +8,8 @@ import { routeTree } from './routeTree.gen';
 import { enableMocking } from '@/scripts/test/setupMSW';
 import { logger } from '@/integration/logger';
 import AppProviders from '@/providers/AppProviders';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ENV } from './config/env';
 if (import.meta.env.DEV) {
   import.meta.glob('./wdyr.ts', { eager: true });
 }
@@ -25,10 +27,12 @@ export const router = createRouter({ routeTree, scrollRestoration: true });
 enableMocking().then(() =>
   root.render(
     <StrictMode>
-      <AppProviders>
-        <RouterProvider router={router} />
-        {openReactQueryDevtools && <ReactQueryDevtools initialIsOpen={false} />}
-      </AppProviders>
+      <GoogleOAuthProvider clientId={ENV.VITE_GOOGLE_CLIENT_ID}>
+        <AppProviders>
+          <RouterProvider router={router} />
+          {openReactQueryDevtools && <ReactQueryDevtools initialIsOpen={false} />}
+        </AppProviders>
+      </GoogleOAuthProvider>
     </StrictMode>,
   ),
 );

@@ -1,7 +1,7 @@
 import type React from 'react';
 
-import { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { FC, useState } from 'react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,17 +9,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link, useNavigate } from '@tanstack/react-router';
 import { GoogleLogin } from '@react-oauth/google';
 
-export default function RegisterPage() {
+export const LoginScreen: FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate registration delay
+    // Simulate login delay
     setTimeout(() => {
       setIsLoading(false);
       navigate({ to: '/' });
@@ -30,8 +29,8 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>Enter your information to get started</CardDescription>
+          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+          <CardDescription>Sign in to your account to continue</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <GoogleLogin width={'500'} onSuccess={() => {}} onError={() => {}} />
@@ -46,13 +45,6 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input id="name" placeholder="John Doe" className="pl-10" required />
-              </div>
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -60,7 +52,12 @@ export default function RegisterPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link to="/forgot-pass" className="text-xs text-primary hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input id="password" type={showPassword ? 'text' : 'password'} className="pl-10 pr-10" required />
@@ -80,55 +77,18 @@ export default function RegisterPage() {
                 </Button>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  className="pl-10 pr-10"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  <span className="sr-only">{showConfirmPassword ? 'Hide password' : 'Show password'}</span>
-                </Button>
-              </div>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              By creating an account, you agree to our{' '}
-              <Link to="/terms" className="text-primary underline-offset-4 hover:underline">
-                Terms of Service
-              </Link>{' '}
-              and{' '}
-              <Link to="/privacy" className="text-primary underline-offset-4 hover:underline">
-                Privacy Policy
-              </Link>
-              .
-            </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-wrap items-center justify-center gap-1 text-sm text-muted-foreground">
-          <span>Already have an account?</span>
-          <Link to="/login" className="text-primary underline-offset-4 transition-colors hover:underline">
-            Sign in
+          <span>Don&apos;t have an account?</span>
+          <Link to="/register" className="text-primary underline-offset-4 transition-colors hover:underline">
+            Sign up
           </Link>
         </CardFooter>
       </Card>
     </div>
   );
-}
+};
