@@ -3,9 +3,6 @@ name: Unit Tests Reusable Workflow
 on:
   workflow_call:
     inputs:
-      frontend_dir:
-        required: true
-        type: string
       backend_dir:
         required: true
         type: string
