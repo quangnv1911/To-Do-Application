@@ -23,4 +23,3 @@ jobs:
     uses: ./.github/workflows/units-test.yml
     with:
       backend_dir: ./back-end
-      frontend_dir: ./front-end
