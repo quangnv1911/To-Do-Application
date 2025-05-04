@@ -1,0 +1,57 @@
+name: Deploy Application
+
+on:
+  workflow_call:
+    inputs:
+      is-main-branch:
+        required: true
+        type: boolean
+        description: 'Check main branch'
+      backend-tag:
+        required: true
+        type: string
+        description: 'Tag of Docker image back-end'
+      frontend-tag:
+        required: true
+        type: string
+        description: 'Tag of Docker image front-end'
+    secrets:
+      SSH_PRIVATE_KEY_DEV:
+        required: true
+      SSH_PRIVATE_KEY_MAIN:
+        required: true
+      DEV_SERVER_HOST:
+        required: true
+      MAIN_SERVER_HOST:
+        required: true
+      SERVER_USER:
+        required: true
+      DOCKER_COMPOSE_PATH:
+        required: true
+
+jobs:
+  deploy_to_server:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH for Dev Server
+        if: inputs.is-main-branch == false
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_DEV }}
+
+      - name: Setup SSH for Production Server
+        if: inputs.is-main-branch == true
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_MAIN }}
+
+      - name: Deploy to Development Server
+        if: inputs.is-main-branch == false
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.DEV_SERVER_HOST }} "cd ${{ secrets.DOCKER_COMPOSE_PATH }} && export BACKEND_TAG=${{ inputs.backend-tag }} && export FRONTEND_TAG=${{ inputs.frontend-tag }} && docker compose pull && docker compose up -d"
+
+      - name: Deploy to Production Server
+        if: inputs.is-main-branch == true
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.MAIN_SERVER_HOST }} "cd ${{ secrets.DOCKER_COMPOSE_PATH }} && export BACKEND_TAG=${{ inputs.backend-tag }} && export FRONTEND_TAG=${{ inputs.frontend-tag }} && docker compose pull && docker compose up -d"

@@ -1,0 +1,77 @@
+name: Static Tests Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      frontend_dir:
+        required: true
+        type: string
+      backend_dir:
+        required: true
+        type: string
+    secrets:
+      SONAR_TOKEN:
+        required: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    defaults:
+      run:
+        working-directory: ${{ inputs.frontend_dir }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: "./front-end/package.json"
+      - run: npm i
+      - run: npm run lint:fix
+
+  sonarcloud_react:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+      - name: SonarCloud Scan Front end
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: ${{ inputs.frontend_dir}}
+
+  sonarcloud_java:
+      name: Build and analyze Java
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Set up JDK 21
+          uses: actions/setup-java@v4
+          with:
+            java-version: 21
+            distribution: "temurin"
+
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+    
+        - name: Build Spring project
+          run: mvn clean install -DskipTests
+          working-directory: ${{ inputs.backend_dir }}
+        
+        - name: Set up SonarCloud
+          uses: SonarSource/sonarcloud-github-action@master
+          with:
+            projectBaseDir: ${{ inputs.backend_dir }}
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
