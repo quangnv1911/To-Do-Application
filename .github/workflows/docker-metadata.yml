@@ -1,0 +1,51 @@
+name: Docker Metadata Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      image-name:
+        description: 'Tên của Docker image'
+        required: true
+        type: string
+      is-main-branch:
+        description: 'Workflow đang chạy cho nhánh main hay không'
+        required: false
+        type: boolean
+        default: false
+      additional-tags:
+        description: 'Các tags bổ sung (phân tách bằng dấu phẩy)'
+        required: false
+        type: string
+        default: ''
+      custom-tags:
+        description: 'Cấu hình tags tùy chỉnh (YAML format)'
+        required: false
+        type: string
+        default: ''
+    outputs:
+      tags:
+        description: 'Các tags được tạo ra'
+        value: ${{ jobs.extract_metadata.outputs.tags }}
+      labels:
+        description: 'Các labels được tạo ra'
+        value: ${{ jobs.extract_metadata.outputs.labels }}
+
+jobs:
+  extract_metadata:
+    name: Extract Docker Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      tags: ${{ steps.meta.outputs.tags }}
+      labels: ${{ steps.meta.outputs.labels }}
+    
+    steps:
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ inputs.image-name }}
+          tags: |
+            type=raw,value=latest,enable=${{ inputs.is-main-branch }}
+            type=sha,format=short
+            ${{ inputs.additional-tags != '' && format('type=raw,value={0}', inputs.additional-tags) || '' }}
+            ${{ inputs.custom-tags != '' && inputs.custom-tags || '' }}

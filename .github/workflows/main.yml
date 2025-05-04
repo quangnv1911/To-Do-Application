@@ -1,0 +1,64 @@
+name: Master branch CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      [opened, synchronize, reopened]
+    branches:
+      - main
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  static-tests:
+    uses: ./.github/workflows/static-test-both.yml
+    with:
+      backend_dir: ./back-end
+      frontend_dir: ./front-end
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    
+  unit-tests:
+    uses: ./.github/workflows/units-test.yml
+    with:
+      backend_dir: ./back-end
+      frontend_dir: ./front-end
+
+  docker-back-end:
+    uses: ./.github/workflows/docker-build-and-push.yml
+    with:
+      image-name: quangnv1911/to-do-app-be
+      registry: docker.io
+      dockerfile-path: ./back-end/Dockerfile
+      context: ./back-end
+      is-main-branch: ${{ github.ref == 'refs/heads/main' }}
+      custom-tags: |
+        type=semver,pattern={{version}}
+        type=ref,event=branch
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      
+  docker-front-end:
+    uses: ./.github/workflows/docker-build-and-push.yml
+    with:
+      image-name: quangnv1911/to-do-app-fe
+      registry: docker.io
+      dockerfile-path: ./front-end/Dockerfile
+      context: ./front-end
+      is-main-branch: ${{ github.ref == 'refs/heads/main' }}
+      custom-tags: |
+        type=semver,pattern={{version}}
+        type=ref,event=branch
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

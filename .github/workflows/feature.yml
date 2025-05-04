@@ -1,0 +1,26 @@
+name: Feature branch CI
+
+on:
+  push:
+    branches:
+      - feature/*
+    
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+jobs:
+  static-tests:
+    uses: ./.github/workflows/static-test-both.yml
+    with:
+      backend_dir: ./back-end
+      frontend_dir: ./front-end
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    
+
+  # unit-tests:
+  unit-tests:
+    uses: ./.github/workflows/units-test.yml
+    with:
+      backend_dir: ./back-end
+      frontend_dir: ./front-end

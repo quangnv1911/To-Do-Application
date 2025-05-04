@@ -1,0 +1,71 @@
+name: Develop branch CI
+
+on:
+  pull_request:
+    types:
+      [opened, synchronize, reopened]
+    branches:
+      - dev
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+jobs:
+  static-tests:
+    uses: ./.github/workflows/static-test-both.yml
+    with:
+      backend_dir: ./back-end
+      frontend_dir: ./front-end
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    
+  unit-tests:
+    uses: ./.github/workflows/units-test.yml
+    with:
+      backend_dir: ./back-end
+  
+  docker-back-end:
+    uses: ./.github/workflows/docker-build-and-push.yml
+    with:
+      image-name: quangnv1911/to-do-app-be
+      registry: docker.io
+      dockerfile-path: ./back-end/Dockerfile
+      context: ./back-end
+      is-main-branch: false
+      custom-tags: |
+        type=ref,event=pr
+        type=ref,event=branch
+      deploy-to-server: false
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      
+  docker-front-end:
+    uses: ./.github/workflows/docker-build-and-push.yml
+    with:
+      image-name: quangnv1911/to-do-app-fe
+      registry: docker.io
+      dockerfile-path: ./front-end/Dockerfile
+      context: ./front-end
+      is-main-branch: false
+      custom-tags: |
+        type=ref,event=pr
+        type=ref,event=branch
+      deploy-to-server: false
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      
+  deploy-application:
+    needs: [docker-back-end, docker-front-end]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      is-main-branch: false
+      backend-tag: ${{ needs.docker-back-end.outputs.image-tag }}
+      frontend-tag: ${{ needs.docker-front-end.outputs.image-tag }}
+    secrets:
+      SSH_PRIVATE_KEY_DEV: ${{ secrets.SSH_PRIVATE_KEY_DEV }}
+      SSH_PRIVATE_KEY_MAIN: ${{ secrets.SSH_PRIVATE_KEY_MAIN }}
+      DEV_SERVER_HOST: ${{ secrets.DEV_SERVER_HOST }}
+      MAIN_SERVER_HOST: ${{ secrets.MAIN_SERVER_HOST }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      DOCKER_COMPOSE_PATH: ${{ secrets.DOCKER_COMPOSE_PATH }}
